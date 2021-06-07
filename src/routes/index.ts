@@ -1,11 +1,9 @@
-import { Response, Request } from 'express'
-import { Router } from "express";
+import { Router } from 'express';
+import { signIn, signUp } from '../controllers/auth/index';
 
-const router: Router = Router()
+const router: Router = Router();
 
-router.get("/", (req: Request, res: Response) => {
-  res.status(200).json({success: true});
-});
-
+router.post('/signUp', signUp);
+router.post('/signIn', signIn);
 
 export default router;

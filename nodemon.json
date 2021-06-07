@@ -2,6 +2,7 @@
   "env": {
       "MONGO_USER": "ruben",
       "MONGO_PASSWORD": "9Sr6D9zupZ59R3G",
-      "MONGO_DB": "repair-shop"
+      "MONGO_DB": "repair-shop",
+      "JWT_SECRET": "YOUR_SECRET_STRING"
   }
 }
