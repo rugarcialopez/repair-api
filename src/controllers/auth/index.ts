@@ -29,7 +29,7 @@ const signUp = async (req: Request, res: Response): Promise<void> => {
     const newUser: IUser = await user.save();
     console.log(newUser);
 
-    const secretKey: string = process.env.MONGO_USER || 'YOUR_SECRET_STRING';
+    const secretKey: string = process.env.JWT_SECRET || 'YOUR_SECRET_STRING';
     //Sing JWT, valid for 1 hour
     const token = jwt.sign(
       { userId: newUser._id.toString() },
@@ -62,7 +62,7 @@ const signIn = async (req: Request, res: Response): Promise<void> => {
       res.status(401).send({message: 'Password does not match'});
       return;
     }
-    const secretKey: string = process.env.MONGO_USER || 'YOUR_SECRET_STRING';
+    const secretKey: string = process.env.JWT_SECRET || 'YOUR_SECRET_STRING';
     //Sing JWT, valid for 1 hour
     const token = jwt.sign(
       { userId: user._id.toString() },
