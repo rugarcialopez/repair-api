@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { signIn, signUp } from '../controllers/auth/index';
-import { getUsers, addUser, updateUser, deleteUser } from '../controllers/user/index';
+import { getUsers, addUser, updateUser, deleteUser } from '../controllers/users/index';
 import { verifyAuthToken } from '../middlewares/verifyAuthToken';
 import { verifyRole } from '../middlewares/verifyRole';
 import { Role } from '../models/user';
