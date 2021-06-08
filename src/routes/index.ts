@@ -18,5 +18,9 @@ router.get('/repairs',[verifyAuthToken, verifyRole([Role.Manager])], getRepairs)
 router.post('/add-repair', [verifyAuthToken, verifyRole([Role.Manager])], addRepair);
 router.put('/edit-repair/:id', [verifyAuthToken, verifyRole([Role.Manager])], updateRepair);
 router.delete('/delete-repair/:id', [verifyAuthToken, verifyRole([Role.Manager])], deleteRepair);
+router.put('/assign-repair-user/:id', [verifyAuthToken, verifyRole([Role.Manager])], updateRepair);
+router.put('/mark-repair/:id', [verifyAuthToken, verifyRole([Role.Manager, Role.User])], updateRepair);
+router.put('/approve-repair/:id', [verifyAuthToken, verifyRole([Role.Manager])], updateRepair);
+
 
 export default router;
