@@ -10,7 +10,6 @@ const router: Router = Router();
 router.post('/signUp', signUp);
 router.post('/signIn', signIn);
 router.get('/users',[verifyAuthToken, verifyRole([Role.Manager])], getUsers);
-router.get('/users',[verifyAuthToken, verifyRole([Role.Manager])], getUsers);
 router.post('/add-user', [verifyAuthToken, verifyRole([Role.Manager])], addUser);
 router.put('/edit-user/:id', [verifyAuthToken, verifyRole([Role.Manager])], updateUser);
 router.delete('/delete-user/:id', [verifyAuthToken, verifyRole([Role.Manager])], deleteUser);
