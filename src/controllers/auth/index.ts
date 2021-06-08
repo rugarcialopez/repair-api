@@ -27,7 +27,6 @@ const signUp = async (req: Request, res: Response): Promise<void> => {
     });
   
     const newUser: IUser = await user.save();
-    console.log(newUser);
 
     const secretKey: string = process.env.JWT_SECRET || 'YOUR_SECRET_STRING';
     //Sing JWT, valid for 1 hour
@@ -69,7 +68,6 @@ const signIn = async (req: Request, res: Response): Promise<void> => {
       secretKey,
       { expiresIn: "1h" }
     );
-
     res.status(201).json({ token,  id: user._id.toString(), role: user.role, fullName: user.fullName  });
   } catch (error) {
     res.status(500).send(error);
