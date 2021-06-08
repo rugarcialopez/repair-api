@@ -3,7 +3,7 @@ import { IUserDocument } from '../types/user';
 import { model, Model, Schema } from 'mongoose';
 import * as bcrypt from "bcryptjs";
 
-enum Role {
+export enum Role {
   Manager = 'manager',
   User = 'user',
 }
