@@ -1,4 +1,4 @@
-import { Router } from 'express';
+import { Router, Response, Request } from 'express';
 import { signIn, signUp } from '../controllers/auth/index';
 import { addRepair, deleteRepair, getRepairs, updateRepair } from '../controllers/repairs';
 import { getUsers, addUser, updateUser, deleteUser } from '../controllers/users/index';
@@ -8,6 +8,9 @@ import { Role } from '../models/user';
 
 const router: Router = Router();
 
+router.get('/', (req: Request, res: Response): void => {
+  res.status(200).json({ success: true});
+});
 router.post('/signUp', signUp);
 router.post('/signIn', signIn);
 router.get('/users',[verifyAuthToken, verifyRole([Role.Manager])], getUsers);
