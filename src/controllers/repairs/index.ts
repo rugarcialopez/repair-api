@@ -5,7 +5,13 @@ import { IRepairDocument } from '../../types/repair';
 const getRepairs = async (req: Request, res: Response): Promise<void> => {
   try {
     const repairs: IRepairDocument[] = await Repair.find();
-    res.status(200).json({ repairs });
+    const transformedRepairs = (repairs || []).map((repair: IRepairDocument) => ({
+      id: repair._id.toString(),
+      description: repair.description,
+      date: repair.date,
+      time: repair.time
+    }));
+    res.status(200).json({ repairs: transformedRepairs });
   } catch (error) {
     res.status(500).send(error);
   }
