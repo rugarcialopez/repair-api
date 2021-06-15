@@ -90,9 +90,19 @@ const updateUser = async (req: Request, res: Response): Promise<void> => {
 }
 
 const deleteUser = async (req: Request, res: Response): Promise<void> => {
+  const userId = res.locals.jwtPayload.userId;
   try {
     await User.findByIdAndRemove(req.params.id);
-    res.status(200).json({ message: 'User deleted' });
+    const users: IUser[] = await User.find({ _id: { $ne: userId }});
+    const transformedUsers =  (users || []).map((user: IUser) => (
+      {
+        id: user._id.toString(),
+        fullName: user.fullName,
+        email: user.email,
+        role: user.role,
+      }
+    ));
+    res.status(200).json({ users: transformedUsers });
   } catch (error) {
     res.status(500).send(error);
   }
