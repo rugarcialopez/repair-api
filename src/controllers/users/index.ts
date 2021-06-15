@@ -7,7 +7,37 @@ const getUsers = async (req: Request, res: Response): Promise<void> => {
     //Get the user ID from previous midleware
     const userId = res.locals.jwtPayload.userId;
     const users: IUser[] = await User.find({ _id: { $ne: userId }});
-    res.status(200).json({ users });
+    const transformedUsers =  (users || []).map((user: IUser) => (
+      {
+        id: user._id.toString(),
+        fullName: user.fullName,
+        email: user.email,
+        role: user.role,
+      }
+    ));
+    res.status(200).json({ users: transformedUsers });
+  } catch (error) {
+    res.status(500).send(error);
+  }
+}
+
+const getUser = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const {
+        params: { id }
+    } = req;
+    const userDB = await User.findById({ _id: id });
+    if (!userDB) {
+      res.status(401).send({ message: 'User does not exist'});
+      return;
+    }
+    const user = {
+      id,
+      fullName: userDB.fullName,
+      email: userDB.email,
+      role: userDB.role
+    }
+    res.status(200).json({user});
   } catch (error) {
     res.status(500).send(error);
   }
@@ -68,4 +98,4 @@ const deleteUser = async (req: Request, res: Response): Promise<void> => {
   }
 }
 
-export { getUsers, addUser, updateUser, deleteUser };
+export { getUsers, getUser, addUser, updateUser, deleteUser };
