@@ -18,7 +18,7 @@ router.get('/users/:id',[verifyAuthToken, verifyRole([Role.Manager])], getUser);
 router.post('/add-user', [verifyAuthToken, verifyRole([Role.Manager])], addUser);
 router.put('/edit-user/:id', [verifyAuthToken, verifyRole([Role.Manager])], updateUser);
 router.delete('/delete-user/:id', [verifyAuthToken, verifyRole([Role.Manager])], deleteUser);
-router.get('/repairs',[verifyAuthToken, verifyRole([Role.Manager])], getRepairs);
+router.get('/repairs',[verifyAuthToken, verifyRole([Role.Manager, Role.User])], getRepairs);
 router.post('/add-repair', [verifyAuthToken, verifyRole([Role.Manager])], addRepair);
 router.put('/edit-repair/:id', [verifyAuthToken, verifyRole([Role.Manager])], updateRepair);
 router.delete('/delete-repair/:id', [verifyAuthToken, verifyRole([Role.Manager])], deleteRepair);
