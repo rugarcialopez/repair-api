@@ -24,13 +24,11 @@ const repairSchema: Schema = new Schema({
         required: true
     },
 
-    assignedTo: {
-      type: Object
+    user: {
+      type: Schema.Types.Mixed
     },
 
-    commnents: {
-      type: String,
-    },
+    comments: [{type: String  }],
     
     repairState: {
       type: RepairStates,
