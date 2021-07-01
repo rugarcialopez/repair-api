@@ -6,7 +6,9 @@ const getUsers = async (req: Request, res: Response): Promise<void> => {
   try {
     //Get the user ID from previous midleware
     const userId = res.locals.jwtPayload.userId;
-    const users: IUser[] = await User.find({ _id: { $ne: userId }});
+    const role = req.query.role as string;
+    const filter = role ? { _id: { $ne: userId }, role: role} : { _id: { $ne: userId }};
+    const users: IUser[] = await User.find(filter);
     const transformedUsers =  (users || []).map((user: IUser) => (
       {
         id: user._id.toString(),
