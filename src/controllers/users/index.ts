@@ -13,7 +13,6 @@ const getUsers = async (req: Request, res: Response): Promise<void> => {
       {
         id: user._id.toString(),
         fullName: user.fullName,
-        email: user.email,
         role: user.role,
       }
     ));
@@ -100,7 +99,6 @@ const deleteUser = async (req: Request, res: Response): Promise<void> => {
       {
         id: user._id.toString(),
         fullName: user.fullName,
-        email: user.email,
         role: user.role,
       }
     ));
