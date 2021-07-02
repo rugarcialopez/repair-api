@@ -28,7 +28,7 @@ const repairSchema: Schema = new Schema({
       type: Schema.Types.Mixed
     },
 
-    comments: [{type: String  }],
+    comments: [{type: String, default: [] }],
     
     repairState: {
       type: RepairStates,

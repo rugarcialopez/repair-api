@@ -43,7 +43,7 @@ const getRepair = async (req: Request, res: Response): Promise<void> => {
 const addRepair = async (req: Request, res: Response): Promise<void> => {
   try {
     //Check if description, date and time are set
-    const { description, date, time, userId, comment } = req.body;
+    const { description, date, time, userId } = req.body;
     if (!(description && date && time && userId)) {
       res.status(400).send({ message: 'description, date, time and user are required' });
       return;
@@ -62,15 +62,14 @@ const addRepair = async (req: Request, res: Response): Promise<void> => {
       user: {
         id: user._id.toString(),
         fullName: user.fullName
-      },
-      comments: comment ? [comment] : []
+      }
     }
     const newRepair = new Repair(newRepairObj);
     await newRepair.save();
     res.status(201).json({ message: 'Repair added' });
   } catch (error) {
     if (error.name === 'CastError') {
-      res.status(422).send({ message: 'user does not exist' });
+      res.status(422).send({ message: 'Userid incorrect' });
       return;
     }
     res.status(500).send(error);
@@ -83,12 +82,39 @@ const updateRepair = async (req: Request, res: Response): Promise<void> => {
         params: { id },
         body,
     } = req;
+    const repairDB: IRepairDocument | null = await Repair.findById(id);
+    if (!repairDB) {
+      res.status(422).send({ message: 'Repair does not exist' });
+      return;
+    }
+    const updatedRepair = {
+      description: body.description,
+      time: body.time,
+      date: new Date(body.date),
+      repairState: RepairStates.Uncompleted,
+      user: repairDB.user
+    };
+    if (body.userId !== repairDB.user.id) {
+      const userDB: IUser | null = await User.findById(body.userId);
+      if (!userDB) {
+        res.status(422).send({ message: 'user does exist' });
+        return;
+      }
+      updatedRepair.user = {
+        id: userDB._id.toString(),
+        fullName: userDB.fullName
+      }
+    }
     await Repair.findByIdAndUpdate(
       { _id: id },
-      body
+      updatedRepair
     );
     res.status(200).json({ message: 'Repair updated'});
   } catch (error) {
+    if (error.name === 'CastError') {
+      res.status(422).send({ message: 'Repairid incorrect' });
+      return;
+    }
     res.status(500).send(error);
   }
 }
