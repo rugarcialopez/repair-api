@@ -31,7 +31,7 @@ const signUp = async (req: Request, res: Response): Promise<void> => {
     const secretKey: string = process.env.JWT_SECRET || 'YOUR_SECRET_STRING';
     //Sing JWT, valid for 1 hour
     const token = jwt.sign(
-      { userId: newUser._id.toString() },
+      { userId: newUser._id.toString(), role: newUser.role },
       secretKey,
       { expiresIn: "1h" }
     );
@@ -64,7 +64,7 @@ const signIn = async (req: Request, res: Response): Promise<void> => {
     const secretKey: string = process.env.JWT_SECRET || 'YOUR_SECRET_STRING';
     //Sing JWT, valid for 1 hour
     const token = jwt.sign(
-      { userId: user._id.toString() },
+      { userId: user._id.toString(), role: user.role },
       secretKey,
       { expiresIn: "1h" }
     );

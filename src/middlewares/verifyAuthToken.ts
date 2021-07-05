@@ -8,7 +8,7 @@ export const verifyAuthToken = (req: Request, res: Response, next: NextFunction)
   
   //Try to validate the token and get data
   try {
-    jwtPayload = <{userId: string}>jwt.verify(token, process.env.JWT_SECRET || 'YOUR_SECRET_STRING');
+    jwtPayload = <{userId: string, role: string}>jwt.verify(token, process.env.JWT_SECRET || 'YOUR_SECRET_STRING');
     res.locals.jwtPayload = jwtPayload;
   } catch (error) {
     //If token is not valid, respond with 401 (unauthorized)

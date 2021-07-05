@@ -6,7 +6,10 @@ import { IRepairDocument } from '../../types/repair';
 
 const getRepairs = async (req: Request, res: Response): Promise<void> => {
   try {
-    const repairs: IRepairDocument[] = await Repair.find();
+    const role = res.locals.jwtPayload.role;
+    const userId = res.locals.jwtPayload.userId;
+    const filter = role === 'manager' ? {} : { 'user.id': userId};
+    const repairs: IRepairDocument[] = await Repair.find(filter);
     const transformedRepairs = (repairs || []).map((repair: IRepairDocument) => ({
       id: repair._id.toString(),
       description: repair.description,
