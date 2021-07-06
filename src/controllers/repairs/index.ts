@@ -14,7 +14,8 @@ const getRepairs = async (req: Request, res: Response): Promise<void> => {
       id: repair._id.toString(),
       description: repair.description,
       date: moment(repair.date).format('YYYY-MM-DD'),
-      time: repair.time
+      time: repair.time,
+      repairState: repair.repairState
     }));
     res.status(200).json({ repairs: transformedRepairs });
   } catch (error) {
@@ -130,7 +131,8 @@ const deleteRepair = async (req: Request, res: Response): Promise<void> => {
       id: repair._id.toString(),
       description: repair.description,
       date: moment(repair.date).format('YYYY-MM-DD'),
-      time: repair.time
+      time: repair.time,
+      repairState: repair.repairState
     }));
     res.status(200).json({ repairs: transformedRepairs });
   } catch (error) {
