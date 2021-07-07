@@ -140,4 +140,15 @@ const deleteRepair = async (req: Request, res: Response): Promise<void> => {
   }
 }
 
-export { getRepairs, addRepair, updateRepair, deleteRepair, getRepair };
+const checkAvailability = async (req: Request, res: Response): Promise<void> => {
+  const time = req.query.time as string;
+  const date = req.query.date as string;
+  if (!time || !date) {
+    res.status(422).send({ message: 'Date and time are required' });
+    return;
+  }
+  const repairDB = await Repair.findOne({ date: new Date(date), time: parseInt(time) });
+  res.status(200).json({ available: repairDB ? false : true });
+}
+
+export { getRepairs, addRepair, updateRepair, deleteRepair, getRepair, checkAvailability };
