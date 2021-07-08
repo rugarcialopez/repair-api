@@ -36,7 +36,8 @@ const getRepair = async (req: Request, res: Response): Promise<void> => {
       description: repairDB.description,
       date: moment(repairDB.date).format('YYYY-MM-DD'),
       time: repairDB.time,
-      userId: repairDB.user.id
+      userId: repairDB.user.id,
+      repairState: repairDB.repairState
     }
     res.status(200).json({repair});
   } catch (error) {
@@ -199,4 +200,56 @@ const checkAvailability = async (req: Request, res: Response): Promise<void> => 
   res.status(200).json({ available: repairDB ? false : true });
 }
 
-export { getRepairs, addRepair, updateRepair, deleteRepair, getRepair, checkAvailability, markRepair };
+const getAllComments = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { params: { id } } = req;
+    const repairDB = await Repair.findById({ _id: id });
+    if (!repairDB) {
+      res.status(401).send({ message: 'Repair does not exist'});
+      return;
+    }
+    res.status(200).json({comments: repairDB.comments});
+  } catch (error) {
+    res.status(500).send(error);
+  }
+}
+
+const addComment = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const {
+        params: { id },
+        body,
+    } = req;
+    const repairDB: IRepairDocument | null = await Repair.findById(id);
+    if (!repairDB) {
+      res.status(422).send({ message: 'Repair does not exist' });
+      return;
+    }
+    await Repair.findByIdAndUpdate(
+      { _id: id },
+      { $push: { comments: body.comment } },
+    );
+    res.status(200).json({ message: 'Comment added'});
+  } catch (error) {
+    res.status(500).send(error);
+  }
+}
+const getMark = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { params: { id } } = req;
+    const repairDB = await Repair.findById({ _id: id });
+    if (!repairDB) {
+      res.status(401).send({ message: 'Repair does not exist'});
+      return;
+    }
+    const repair = {
+      description: repairDB.description,
+      repairState: repairDB.repairState
+    }
+    res.status(200).json({repair});
+  } catch (error) {
+    res.status(500).send(error);
+  }
+}
+
+export { getRepairs, addRepair, updateRepair, deleteRepair, getRepair, checkAvailability, markRepair, getAllComments, addComment, getMark };
