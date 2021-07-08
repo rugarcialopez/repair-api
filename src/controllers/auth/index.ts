@@ -36,7 +36,7 @@ const signUp = async (req: Request, res: Response): Promise<void> => {
       { expiresIn: "1h" }
     );
 
-    res.status(201).json({ token, role: newUser.role, expirationTime: 3600  });
+    res.status(201).json({ token, role: newUser.role, expirationTime: 3600, userId: newUser._id.toString()  });
   } catch (error) {
     res.status(500).send(error);
   }
@@ -68,7 +68,7 @@ const signIn = async (req: Request, res: Response): Promise<void> => {
       secretKey,
       { expiresIn: "1h" }
     );
-    res.status(201).json({ token, role: user.role, expirationTime: 3600 });
+    res.status(201).json({ token, role: user.role, expirationTime: 3600, userId: user._id.toString() });
   } catch (error) {
     res.status(500).send(error);
   }

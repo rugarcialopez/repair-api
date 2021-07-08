@@ -1,6 +1,6 @@
 import { Router, Response, Request } from 'express';
 import { signIn, signUp } from '../controllers/auth/index';
-import { addRepair, deleteRepair, getRepair, getRepairs, updateRepair, checkAvailability } from '../controllers/repairs';
+import { addRepair, deleteRepair, getRepair, getRepairs, updateRepair, checkAvailability, markRepair } from '../controllers/repairs';
 import { getUsers, getUser, addUser, updateUser, deleteUser } from '../controllers/users/index';
 import { verifyAuthToken } from '../middlewares/verifyAuthToken';
 import { verifyRole } from '../middlewares/verifyRole';
@@ -23,9 +23,7 @@ router.get('/repairs',[verifyAuthToken, verifyRole([Role.Manager, Role.User])], 
 router.post('/add-repair', [verifyAuthToken, verifyRole([Role.Manager])], addRepair);
 router.put('/edit-repair/:id', [verifyAuthToken, verifyRole([Role.Manager])], updateRepair);
 router.delete('/delete-repair/:id', [verifyAuthToken, verifyRole([Role.Manager])], deleteRepair);
-router.put('/assign-repair-user/:id', [verifyAuthToken, verifyRole([Role.Manager])], updateRepair);
-router.put('/mark-repair/:id', [verifyAuthToken, verifyRole([Role.Manager, Role.User])], updateRepair);
-router.put('/approve-repair/:id', [verifyAuthToken, verifyRole([Role.Manager])], updateRepair);
+router.put('/mark-repair/:id', [verifyAuthToken, verifyRole([Role.Manager, Role.User])], markRepair);
 router.get('/availability',[verifyAuthToken, verifyRole([Role.Manager])], checkAvailability);
 
 

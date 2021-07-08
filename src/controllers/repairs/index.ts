@@ -1,7 +1,7 @@
 import { Response, Request } from 'express';
 import moment from 'moment';
 import Repair, { RepairStates } from '../../models/repair';
-import User, { IUser } from '../../models/user';
+import User, { IUser, Role } from '../../models/user';
 import { IRepairDocument } from '../../types/repair';
 
 const getRepairs = async (req: Request, res: Response): Promise<void> => {
@@ -116,7 +116,55 @@ const updateRepair = async (req: Request, res: Response): Promise<void> => {
     res.status(200).json({ message: 'Repair updated'});
   } catch (error) {
     if (error.name === 'CastError') {
-      res.status(422).send({ message: 'Repairid incorrect' });
+      res.status(422).send({ message: 'Repair incorrect' });
+      return;
+    }
+    res.status(500).send(error);
+  }
+}
+
+const markRepair = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const {
+        params: { id },
+        body,
+    } = req;
+    const repairDB: IRepairDocument | null = await Repair.findById(id);
+    if (!repairDB) {
+      res.status(422).send({ message: 'Repair does not exist' });
+      return;
+    }
+    const { userId, repairState } = body;
+    if (!userId || !repairState) {
+      res.status(400).send({ message: 'User and mark are required' });
+      return;
+    }
+    const userDB: IUser | null = await User.findById(userId);
+    if (!userDB) {
+      res.status(422).send({ message: 'user does exist' });
+      return;
+    }
+    if (repairDB.repairState !== RepairStates.Uncompleted && userDB.role === Role.User) {
+      res.status(422).send({ message: 'You can not undo the current mark' });
+      return;
+    }
+
+    if (repairDB.user.id !== userId && userDB.role === Role.User) {
+      res.status(422).send({ message: 'You do not have permissions to mark this repair' });
+      return;
+    }
+
+    const updatedRepair = {
+      repairState: repairState,
+    };
+    await Repair.findByIdAndUpdate(
+      { _id: id },
+      updatedRepair
+    );
+    res.status(200).json({ message: 'Repair marked'});
+  } catch (error) {
+    if (error.name === 'CastError') {
+      res.status(422).send({ message: 'Repair incorrect' });
       return;
     }
     res.status(500).send(error);
@@ -151,4 +199,4 @@ const checkAvailability = async (req: Request, res: Response): Promise<void> => 
   res.status(200).json({ available: repairDB ? false : true });
 }
 
-export { getRepairs, addRepair, updateRepair, deleteRepair, getRepair, checkAvailability };
+export { getRepairs, addRepair, updateRepair, deleteRepair, getRepair, checkAvailability, markRepair };
