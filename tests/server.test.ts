@@ -74,8 +74,51 @@ describe('GET /api/users',  () => {
         expect(response.body.users[0].role).toBe(user.role);
       });
   })
+});
 
-  
+describe('GET /api/user/:id',  () => {
 
+  test('should require authorization', async () => {
+    await supertest(app).get('/api/users/1')
+      .expect(401);
+  })
 
+  test('should require manager role', async () => {
+    const token = await signUp({
+      fullName: 'Manager One',
+      email: 'mnanager01@example.com',
+      password: 'manager01',
+      role: 'user'
+    });
+    const response = await supertest(app).get('/api/users/1')
+      .set('token', token)
+      .expect(401);
+    
+    expect(response.body.message).toBe('Unauthorized role');
+  })
+
+  test('should return a JSON with the user', async () => {
+    const token = await signUp({
+      fullName: 'Manager One',
+      email: 'mnanager01@example.com',
+      password: 'manager01',
+      role: 'manager'
+    });
+    const user = await User.create({ fullName: 'User One', email:'user01@example.com', password: 'test', role: 'user' });
+
+    await supertest(app).get(`/api/users/${user._id.toString()}`)
+      .set('token', token)
+      .expect(200)
+      .then((response) => {
+        // Check type and length
+        expect(response.body.user && typeof response.body.user === 'object').toBeTruthy();
+        expect(response.body.user).not.toBeNull();
+
+        // Check data
+        expect(response.body.user.id).toBe(user._id.toString());
+        expect(response.body.user.fullName).toBe(user.fullName);
+        expect(response.body.user.role).toBe(user.role);
+        expect(response.body.user.email).toBe(user.email);
+      });
+  })
 });
