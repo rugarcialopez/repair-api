@@ -222,3 +222,44 @@ describe('PUT /api/edit-user/:id',  () => {
     });
   })
 });
+
+describe('DELETE /api/delete-user/:id',  () => {
+
+  test('should require authorization', async () => {
+    await supertest(app).delete('/api/delete-user/1')
+      .expect(401);
+  })
+
+  test('should require manager role', async () => {
+    const token = await signUp({
+      fullName: 'Manager One',
+      email: 'mnanager01@example.com',
+      password: 'manager01',
+      role: 'user'
+    });
+    const response = await supertest(app).delete('/api/delete-user/1')
+      .set('token', token)
+      .expect(401);
+    
+    expect(response.body.message).toBe('Unauthorized role');
+  })
+
+  test('should remove an existing user', async () => {
+    const user = await User.create({ fullName: 'User One', email:'user01@example.com', password: 'test', role: 'user' });
+    const token = await signUp({
+      fullName: 'Manager One',
+      email: 'mnanager01@example.com',
+      password: 'manager01',
+      role: 'manager'
+    }); 
+
+    await supertest(app).delete(`/api/delete-user/${user._id.toString()}`)
+    .set('token', token)
+    .expect(200)
+    .then(async (response) => {
+      // Check the response
+      expect(response.body.users).toBeTruthy();
+      expect(response.body.users.length).toEqual(0);
+    });
+  })
+});
