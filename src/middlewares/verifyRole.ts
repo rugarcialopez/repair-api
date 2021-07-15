@@ -11,7 +11,7 @@ export const verifyRole = (roles: Array<string>) => {
     if (user && roles.indexOf(user.role) > -1) {
       next();
     } else {
-      res.status(401).send({ message: 'Wrong role'});
+      res.status(401).send({ message: 'Unauthorized role'});
       return;
     }
   };
