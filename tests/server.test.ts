@@ -122,3 +122,53 @@ describe('GET /api/user/:id',  () => {
       });
   })
 });
+
+describe('GET /api/add-user',  () => {
+
+  const newUser =  { fullName: 'User One', email:'user01@example.com', password: 'test', role: 'user' };
+
+  test('should require authorization', async () => {
+    await supertest(app).post('/api/add-user')
+      .send(newUser)
+      .expect(401);
+  })
+
+  test('should require manager role', async () => {
+    const token = await signUp({
+      fullName: 'Manager One',
+      email: 'mnanager01@example.com',
+      password: 'manager01',
+      role: 'user'
+    });
+    const response = await supertest(app).post('/api/add-user')
+      .set('token', token)
+      .send(newUser)
+      .expect(401);
+    
+    expect(response.body.message).toBe('Unauthorized role');
+  })
+
+  test('should create a new user', async () => {
+    const token = await signUp({
+      fullName: 'Manager One',
+      email: 'mnanager01@example.com',
+      password: 'manager01',
+      role: 'manager'
+    }); 
+
+    await supertest(app).post('/api/add-user')
+    .set('token', token)
+    .send(newUser)
+    .expect(201)
+    .then(async (response) => {
+      // Check the response
+      expect(response.body.message).toBeTruthy();
+      expect(response.body.message).toBe('User added');
+
+      // Check data in the database
+      const user = await User.findOne({ email: 'user01@example.com' });
+      expect(user?.fullName).toBe(newUser.fullName);
+      expect(user?.role).toBe(newUser.role);
+    });
+  })
+});
