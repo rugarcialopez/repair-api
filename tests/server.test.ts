@@ -2,12 +2,21 @@ import mongoose from 'mongoose';
 import app from '../src/app';
 import supertest from 'supertest';
 import User from '../src/models/user';
+import Repair from '../src/models/repair';
+import { IUserDocument } from '../src/types/user';
 
 type AuthUser = {
   fullName: string,
   role: string,
   email: string,
   password: string
+}
+
+type RepairObj = {  
+  description: string,
+  date: string,
+  time: number,
+  userId: string
 }
 
 beforeEach((done) => {
@@ -76,7 +85,7 @@ describe('GET /api/users',  () => {
   })
 });
 
-describe('GET /api/user/:id',  () => {
+describe('GET /api/users/:id',  () => {
 
   test('should require authorization', async () => {
     await supertest(app).get('/api/users/1')
@@ -263,3 +272,238 @@ describe('DELETE /api/delete-user/:id',  () => {
     });
   })
 });
+
+describe('GET /api/repairs',  () => {
+
+  test('should require authorization', async () => {
+    await supertest(app).get('/api/repairs')
+      .expect(401);
+  })
+
+  test('should return a JSON with the repairs', async () => {
+    const token = await signUp({
+      fullName: 'Manager One',
+      email: 'mnanager01@example.com',
+      password: 'manager01',
+      role: 'manager'
+    });
+    const repair = await Repair.create({comments: [], description: 'Repair 1', date: '2021-07-14', time: 11, repairState: 'uncompleted', user: { id: '60eebbe11d8ccf132014db78', fullName: 'Learner One'}});
+
+    await supertest(app).get('/api/repairs')
+      .set('token', token)
+      .expect(200)
+      .then((response) => {
+        // Check type and length
+        expect(Array.isArray(response.body.repairs)).toBeTruthy();
+        expect(response.body.repairs.length).toEqual(1);
+
+        // Check data
+        expect(response.body.repairs[0].id).toBe(repair._id.toString());
+        expect(response.body.repairs[0].description).toBe(repair.description);
+        expect(response.body.repairs[0].time).toBe(repair.time);
+        expect(response.body.repairs[0].repairState).toBe(repair.repairState);
+      });
+  })
+});
+
+describe('GET /api/repairs/:id',  () => {
+
+  test('should require authorization', async () => {
+    await supertest(app).get('/api/repairs/60eebc041d8ccf132014db7a')
+      .expect(401);
+  })
+
+  test('should require manager role', async () => {
+    const token = await signUp({
+      fullName: 'Manager One',
+      email: 'mnanager01@example.com',
+      password: 'manager01',
+      role: 'user'
+    });
+    const response = await supertest(app).get('/api/repairs/60eebc041d8ccf132014db7a')
+      .set('token', token)
+      .expect(401);
+    
+    expect(response.body.message).toBe('Unauthorized role');
+  })
+
+  test('should return a JSON with the repair', async () => {
+    const token = await signUp({
+      fullName: 'Manager One',
+      email: 'mnanager01@example.com',
+      password: 'manager01',
+      role: 'manager'
+    });
+    const repair = await Repair.create({comments: [], description: 'Repair 1', date: '2021-07-14', time: 11, repairState: 'uncompleted', user: { id: '60eebbe11d8ccf132014db78', fullName: 'Learner One'}});
+
+    await supertest(app).get(`/api/repairs/${repair._id.toString()}`)
+      .set('token', token)
+      .expect(200)
+      .then((response) => {
+        // Check type and length
+        expect(response.body.repair && typeof response.body.repair === 'object').toBeTruthy();
+        expect(response.body.repair).not.toBeNull();
+
+        // Check data
+        expect(response.body.repair.id).toBe(repair._id.toString());
+        expect(response.body.repair.description).toBe(repair.description);
+        expect(response.body.repair.time).toBe(repair.time);
+        expect(response.body.repair.repairState).toBe(repair.repairState);
+      });
+  })
+});
+
+describe('POST /api/add-repair', () => {
+
+  let newRepair: RepairObj;
+
+  beforeEach(async () => {
+    const user = await User.create({ fullName: 'User One', email:'user01@example.com', password: 'test', role: 'user' });
+    newRepair = {description: 'Repair 1', date: '2021-07-14', time: 11, userId: user._id.toString() };
+  });
+  
+
+  test('should require authorization', async () => {
+    await supertest(app).post('/api/add-repair')
+      .send(newRepair)
+      .expect(401);
+  })
+
+  test('should require manager role', async () => {
+    const token = await signUp({
+      fullName: 'Manager One',
+      email: 'mnanager01@example.com',
+      password: 'manager01',
+      role: 'user'
+    });
+    const response = await supertest(app).post('/api/add-repair')
+      .set('token', token)
+      .send(newRepair)
+      .expect(401);
+    
+    expect(response.body.message).toBe('Unauthorized role');
+  })
+
+  test('should create a new repair', async () => {
+    const token = await signUp({
+      fullName: 'Manager One',
+      email: 'mnanager01@example.com',
+      password: 'manager01',
+      role: 'manager'
+    }); 
+
+    await supertest(app).post('/api/add-repair')
+    .set('token', token)
+    .send(newRepair)
+    .expect(201)
+    .then(async (response) => {
+      // Check the response
+      expect(response.body.message).toBeTruthy();
+      expect(response.body.message).toBe('Repair added');
+
+      // Check data in the database
+      const repair = await Repair.findOne({ description: 'Repair 1' });
+      expect(repair?.description).toBe(newRepair?.description)
+      expect(repair?.time).toBe(newRepair?.time);
+    });
+  })
+});
+
+describe('PUT /api/edit-repair/:id',  () => {
+
+  let updatedRepair: RepairObj;
+  let user: IUserDocument;
+
+
+  beforeEach(async () => {
+    user = await User.create({ fullName: 'User One', email:'user01@example.com', password: 'test', role: 'user' });
+    updatedRepair = {description: 'Repair 1 updated', date: '2021-07-14', time: 11, userId: user._id.toString() };
+  });
+
+  test('should require authorization', async () => {
+    await supertest(app).put('/api/edit-user/60eebc041d8ccf132014db7a')
+      .send(updatedRepair)
+      .expect(401);
+  })
+
+  test('should require manager role', async () => {
+    const token = await signUp({
+      fullName: 'Manager One',
+      email: 'mnanager01@example.com',
+      password: 'manager01',
+      role: 'user'
+    });
+    const response = await supertest(app).put('/api/edit-user/60eebc041d8ccf132014db7a')
+      .set('token', token)
+      .send(updatedRepair)
+      .expect(401);
+    
+    expect(response.body.message).toBe('Unauthorized role');
+  })
+
+  test('should update an existing repair', async () => {
+    const repair = await Repair.create({comments: [], description: 'Repair 1', date: '2021-07-14', time: 11, repairState: 'uncompleted', user: { id: user._id.fullName, fullName: user.fullName}});
+    const token = await signUp({
+      fullName: 'Manager One',
+      email: 'mnanager01@example.com',
+      password: 'manager01',
+      role: 'manager'
+    }); 
+
+    await supertest(app).put(`/api/edit-repair/${repair._id.toString()}`)
+    .set('token', token)
+    .send(updatedRepair)
+    .expect(200)
+    .then(async (response) => {
+      // Check the response
+      expect(response.body.message).toBeTruthy();
+      expect(response.body.message).toBe('Repair updated');
+
+      // Check data in the database
+      const repair = await Repair.findOne({ time: 11 });
+      expect(repair?.description).toBe(updatedRepair.description);
+    });
+  })
+});
+
+describe('DELETE /api/delete-repair/:id',  () => {
+
+  test('should require authorization', async () => {
+    await supertest(app).delete('/api/delete-repair/1')
+      .expect(401);
+  })
+
+  test('should require manager role', async () => {
+    const token = await signUp({
+      fullName: 'Manager One',
+      email: 'mnanager01@example.com',
+      password: 'manager01',
+      role: 'user'
+    });
+    const response = await supertest(app).delete('/api/delete-repair/1')
+      .set('token', token)
+      .expect(401);
+    
+    expect(response.body.message).toBe('Unauthorized role');
+  })
+
+  test('should remove an existing repair', async () => {
+    const repair = await Repair.create({comments: [], description: 'Repair 1', date: '2021-07-14', time: 11, repairState: 'uncompleted', user: { id: '1', fullName: 'User One'}});
+    const token = await signUp({
+      fullName: 'Manager One',
+      email: 'mnanager01@example.com',
+      password: 'manager01',
+      role: 'manager'
+    }); 
+
+    await supertest(app).delete(`/api/delete-repair/${repair._id.toString()}`)
+    .set('token', token)
+    .expect(200)
+    .then(async (response) => {
+      // Check the response
+      expect(response.body.repairs).toBeTruthy();
+      expect(response.body.repairs.length).toEqual(0);
+    });
+  })
+});
+
